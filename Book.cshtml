@@ -1,0 +1,421 @@
+﻿@model IEnumerable<Library.Models.Book.Book_Prop>
+@{
+    ViewBag.Title = "Book";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script src="~/Scripts/jquery-1.10.2.min.js"></script>
+<style>
+    .modal-header {
+        padding-bottom: 0px;
+        background-color: #307ECC;
+        color: #fff;
+        padding-top: 2px;
+        margin-bottom: -1px
+    }
+
+        .modal-header .close {
+            font-size: 25px;
+            color: beige;
+        }
+
+    .modal-body {
+        border: 2px solid #307ECC;
+    }
+</style>
+@*<button onclick="LoadColor()">Click ME</button>*@
+<script>
+
+    let FinObj = {};
+
+    $(document).ready(function () {
+       
+        LoadColor();
+    });
+
+
+
+   @*var PageRights;
+    function GetPageRights() {
+        var url = "@Url.Action("GetPageRights", "MenuPermission")";
+         $.ajax({ url: url, data: null, method: 'GET', async: false }).done(function (result) {
+             console.log(result)
+             if (result != null)
+                 PageRights = result;
+             if (!result.FA) {
+                 $('#BtnAdd').remove();
+             }
+             if (!result.FX) {
+                 $('#Exptype').remove();
+                 $('#BtnExport').remove();
+             }
+
+         }).fail(function (result) {
+             alert(result);
+         });
+     }
+     function LoadActionIcons(value) {
+         var actionicons = '<td class="table-Action">';
+         if (PageRights.FS) {
+             actionicons += '<span class="pd-setting-ed fa fa-pencil" data-toggle="modal" data-placement="top"   title="Edit" id="' + value + '"  data-target="#myModalEdit" onclick="LoadRetrieve(this.id)"></span>';
+         }
+         if (PageRights.FD) {
+             actionicons += '<span class="fa fa-trash pd-setting-del" data-toggle="tooltip" data-placement="top" title="trush" id="' + value + '"  onclick="Deleted(this.id)"></span>';
+         }
+         actionicons += '</td>';
+
+         return actionicons;
+     }*@
+     function LoadColorS() {
+         $("#pagefind").val(1);
+         LoadColor();
+     }
+    function LoadColor()
+    {
+        var pagesize = $("#pagerecord").val();
+        var pageindex = $("#pagefind").val();
+        var row = "";
+        $.ajax({ url: "@Url.Action("LoadColor", "Book")", data: { Search: $("#TxtSearch").val(), pagesize: pagesize, pageindex: pageindex}, method: 'GET', async: false }).done(function (result) {
+            FinObj.Retrieve = result;
+            $("#hiddentotalrows").val(result.Total);
+            $.each(result.Results, function (key, value) {
+
+                row += '<tr>';
+                row += '  <td><input type="checkbox" id="' + value.ID + '" /></td>';
+                row += '  <td>' + value.BookName + '</td>';
+                row += ' <td>' + value.AuthorName +'</td>';
+                row += '  <td>' + value.Year + '</td>';
+                row += "<td> <button type='button' id='" + value.ID + "' onclick='LoadRetrieve(this.id);'  <span class='fa fa-edit'> </button> &nbsp;  <button type='button' id='" + value.ID + "' onclick='Deleted(this.id);'  <span class='fa fa-trash'> </button></td>";
+                row += "<td></td>";
+
+               
+                row += '      </tr>';
+
+            });
+            $("#tbodygrid").html(row);
+        });
+        TablePagination();
+
+     }
+
+
+
+
+    function Insert()
+    {
+
+        if ($("#BookName").val().trim() == "" || $("#BookName").val().trim() == null) {
+            alert("Please Enter Book Name!");
+            return false;
+        }
+
+        if ($("#AuthorName").val().trim() == "" || $("#AuthorName").val().trim() == null) {
+            alert("Please Enter Author Name!");
+            return false;
+        }
+
+        if ($("#Publishyear").val().trim() == "" || $("#Publishyear").val().trim() == null) {
+            alert("Please Enter Published Year!");
+            return false;
+        }
+        var BookName = $("#BookName").val();
+        var AuthorName = $("#AuthorName").val();
+        var Publishyear = $("#Publishyear").val();             
+        $.ajax({ url: "@Url.Action("Insert", "Book")", data: { BookName: BookName, AuthorName: AuthorName, Year:Publishyear}, method: 'GET', async: false }).done(function (result) {
+            alert(result);
+            LoadColor();
+            clear1();
+            location.reload();
+        })
+    }
+     function Update()
+     {
+
+         if ($("#EditBookName").val().trim() == "" || $("#EditBookName").val().trim() == null) {
+             alert("Please Enter Book Name!");
+             return false;
+         }
+
+         if ($("#EditAuthorName").val().trim() == "" || $("#EditAuthorName").val().trim() == null) {
+             alert("Please Enter Author Name!");
+             return false;
+         }
+
+         if ($("#EditPublishyear").val().trim() == "" || $("#EditPublishyear").val().trim() == null) {
+             alert("Please Enter Published Year!");
+             return false;
+         }
+         if ($("#Isactive").prop('checked')) {
+             var Isa = true;
+         }
+         else {
+             var Isa = false;
+         }
+         
+         var Bookid = $("#hiddenColorId").val();
+         var EditBookName = $("#EditBookName").val();
+         var EditAuthorName = $("#EditAuthorName").val();
+         var EditPublishyear = $("#EditPublishyear").val();
+
+
+         $.ajax({ url: "@Url.Action("LoadUpdate", "Book")", data: { ID: Bookid, BookName: EditBookName, AuthorName: EditAuthorName, Year: EditPublishyear, Isactive:Isa}, method: 'GET', async: false }).done(function (result) {
+            alert(result);
+            LoadColor();
+            clear1();
+            location.reload();
+        })
+    }
+
+    function clear1()
+    {
+        $("#BookName").val("");
+
+    }
+
+
+
+    function LoadRetrieve(id) {
+        $('#myModalEdit').modal({
+            show: 'true'
+        });
+
+        $("#hiddenColorId").val(id);
+        $.ajax({ url: "@Url.Action("LoadRetrieve", "Book")", data: { ID: id }, method: 'POST', async: false }).done(function (result) {
+
+            var EditBookName = $("#EditBookName").val(result.BookName);
+            var EditAuthorName = $("#EditAuthorName").val(result.AuthorName);
+            var EditPublishyear = $("#EditPublishyear").val(result.Year);
+                 $("#Isactive").prop('checked', result.Isactive);
+
+         })
+
+
+    }
+
+    function Deleted(id) {
+        if (confirm('Are you sure?')) {
+            $.ajax({ url: "@Url.Action("LoadDeleted", "Book")", data: { ID: id }, method: 'GET', async: false }).done(function (result) {
+                alert(result);
+                LoadColor();
+            });
+        }
+    }
+    function TablePagination() {
+        var totalRows = $("#hiddentotalrows").val();
+        var recordPerPage = $("#pagerecord").val();
+        var totalPages = Math.ceil(totalRows / recordPerPage);
+        $("#totalpages").text(totalPages);
+    }
+    function PageNextClick() {
+        var pageval = $("#pagefind").val();
+        var totpages = $("#totalpages").text();
+        if (pageval < parseInt(totpages)) {
+            $("#pagefind").val(parseInt(pageval) + 1);
+            LoadColor();
+        }
+    }
+    function PagePreviousClick() {
+        var pageval = $("#pagefind").val();
+        if (pageval > 1) {
+            $("#pagefind").val(parseInt(pageval) - 1);
+            LoadColor();
+        }
+    }
+    function PageFindTextChange() {
+        var pageval = $("#pagefind").val();
+        var recordPerPage = $("pagerecord").val();
+        var totpages = $("totalpages").text()
+        if (pageval <= parseInt(totpages) || pageval >= 1) {
+            LoadColor();
+        }
+    }
+    function PageRecordOnchange() {
+        $("#pagefind").val(1);
+        LoadColor();
+        TablePagination();
+    }
+
+
+</script>
+<div class="main-content-inner">
+    <div class="breadcrumbs ace-save-state" id="breadcrumbs">
+        <ul class="breadcrumb">
+            <li>
+                <i class="ace-icon fa fa-home home-icon"></i>
+                <a href="../Homepage/index">Home</a>
+            </li>
+            <li class="active">@ViewBag.Title</li>
+        </ul><!-- /.breadcrumb -->
+
+        <div class="nav-search" id="nav-search">
+            <div class="form-search" style="text-align:right">
+                <span class="input-icon">
+                    <input type="text" placeholder="Search ..." class="nav-search-input" id="TxtSearch" onchange="LoadColorS()" />
+                    <i class="ace-icon fa fa-search nav-search-icon"></i>
+                </span>
+            </div>
+        </div><!-- /.nav-search -->
+    </div>
+    <div class="page-content">
+        <div class="row">
+            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                <div class="container-fluid">
+                    <div class="row" style="margin-left:-12px; margin-right: -12px;">
+                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                            <div class="row table-top-des" style="margin:0px">
+                                <label class="label-heading" id="Label-heads">Book Details </label>
+                                <div class="pull-right pull-rights-feilds">
+                                   
+                                    <button type="button" style="padding:3px 4px 3px 4px; border-radius:3px;background-color:#6fb3e0;border:none;outline:none" data-toggle="modal" data-target="#myModal"><span class="fa fa-plus"></span> Add</button>
+                                    @*<button type="button" class="btn btn-danger btn-xs" style="padding:0px 5px 0px 5px; border-radius:5px;"><span class="fa fa-trash"></span></button>*@
+                                </div>
+                            </div>
+                            <div class="Table-res">
+                                <table class="table table-hover table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th><input type="checkbox" /></th>
+                                            <th>Book Name</th>
+                                            <th>Author Name</th>
+                                            <th>Published Year</th>
+                                            <th>Action</th>
+
+                                            @*<th><button type="button" class="btn btn-primary btn-xs" style="padding:2px 2px; border-radius:3px">Add</button></th>*@
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbodygrid">
+                                                                                @*<tr>
+            <td><input type="checkbox" /></td>
+            <td>2019</td>
+            <td>10/06/2019</td>
+            <td>20/09/2019</td>
+            <td>True</td>
+
+            <td>
+                <span class="fa fa-pencil" data-toggle="modal" data-placement="top"   title="Edit"  data-target="#myModalEdit"></span>
+                <span class="fa fa-trash" data-toggle="tooltip" data-placement="top" title="trush"></span>
+            </td>
+        </tr>*@
+
+                                    </tbody>
+                                    <tfoot id="#">
+                                        <tr>
+                                            <td colspan="6" style="text-align:center">
+                                                <div class="pagination" style="margin:0px;">
+                                                    Records Per Page : <select onchange="PageRecordOnchange()" id="pagerecord"><option value="5">5</option><option selected value="10">10</option><option value="20">20</option><option value="30">30</option></select>
+                                                    <i id="pageprevious" onclick="PagePreviousClick()" class="fa fa-chevron-circle-left"></i>&nbsp;&nbsp;
+                                                    Page&nbsp;&nbsp;<input id="pagefind" onchange="PageFindTextChange()" type="text" value="1" /> of  <label id="totalpages"></label>
+                                                    &nbsp;<i id="pagenext" onclick="PageNextClick()" class="fa fa-chevron-circle-right"></i>&nbsp;
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" role="dialog">
+    <div class="modal-dialog modal-md">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h6 class="modal-title"> Add Book</h6>
+            </div>
+            <div class="modal-body">
+                <div class="Popup-input-design">
+                    <div class="row">
+                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                            <div class="col-md-offset-2">
+                                <div class="col-md-10 col-sm-10 col-xs-12">
+
+
+                                    <div class="row">
+                                        <label class="col-lg-4 col-xs-5">Book Name <span class="star">*</span></label><input placeholder="Enter Book Name" class="col-lg-7 col-xs-6 input" maxlength="30" id="BookName" />
+                                    </div>
+                                    <div class="row">
+                                        <label class="col-lg-4 col-xs-5">Author Name <span class="star">*</span></label><input placeholder="Enter  Author Name" class="col-lg-7 col-xs-6 input" maxlength="30" id="AuthorName" />
+                                    </div>
+                                    <div class="row">
+                                        <label class="col-lg-4 col-xs-5">Published Year <span class="star">*</span></label><input placeholder="Enter  Published Year" class="col-lg-7 col-xs-6 input" maxlength="30" id="Publishyear" />
+                                    </div>
+
+                                    <div class="row" style="text-align:center;justify-content:center">
+                                        <div style="">
+                                            <button type="submit" class="btn btn-primary btn-xs" style="border-radius:3px" onclick="Insert()" id="btnclose">Submit</button>
+                                            <button type="button" class="btn btn-primary btn-xs" data-dismiss="modal" style="border-radius:3px">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @*<div class="modal-footer">
+                <button type="submit" class="btn btn-primary btn-xs">Submit</button>
+                <button type="button" class="btn btn-default btn-xs" data-dismiss="modal">Close</button>
+            </div>*@
+    </div>
+
+</div>
+<div class="modal fade" id="myModalEdit" role="dialog">
+    <div class="modal-dialog modal-md">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h6 class="modal-title"> Edit Book</h6>
+            </div>
+            <div class="modal-body">
+                <div class="Popup-input-design">
+                    <div class="row">
+                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                            <div class="col-md-offset-2">
+                                <div class="col-md-10 col-sm-10 col-xs-12">
+
+
+                                    <div class="row">
+                                        <label class="col-lg-4 col-xs-5">Book Name <span class="star">*</span></label><input placeholder="Enter Book Name" class="col-lg-7 col-xs-6 input" maxlength="30" id="EditBookName" />
+                                    </div>
+                                    <div class="row">
+                                        <label class="col-lg-4 col-xs-5">Author Name <span class="star">*</span></label><input placeholder="Enter  Author Name" class="col-lg-7 col-xs-6 input" maxlength="30" id="EditAuthorName" />
+                                    </div>
+                                    <div class="row">
+                                        <label class="col-lg-4 col-xs-5">Published Year <span class="star">*</span></label><input placeholder="Enter  Published Year" class="col-lg-7 col-xs-6 input" maxlength="30" id="EditPublishyear" />
+                                    </div>
+
+                                    <div class="row" style="text-align:center;justify-content:center">
+                                        <div style="">
+                                            <button type="submit" class="btn btn-primary btn-xs" style="border-radius:3px" onclick="Update()" id="btnclose">Submit</button>
+                                            <button type="button" class="btn btn-primary btn-xs" data-dismiss="modal" style="border-radius:3px">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @*<div class="modal-footer">
+                <button type="submit" class="btn btn-primary btn-xs">Submit</button>
+                <button type="button" class="btn btn-default btn-xs" data-dismiss="modal">Close</button>
+            </div>*@
+    </div>
+
+</div>
+
+<input type="hidden" id="hiddenColorId" />
+<input type="hidden" id="hiddentotalrows" />
+
