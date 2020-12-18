@@ -1,0 +1,49 @@
+     function LoadsubCatg() {
+         $("#selectstyleCtg").html($('<option></option>').html('---Select---').val(0));
+        $.ajax({ url: "@Url.Action("LoadSCatg", "DropDown")", data: null, method: 'Post', async: false }).done(function (result) {
+            $.each(result, function (key, value)
+            {
+                $("#selectstyleCtg").append($('<option></option>').val(value.Code).html(value.Name));
+            })
+        })
+    }
+
+   public JsonResult LoadBusiness()
+        {
+            var result = dropdownFunc.GetBusiness();
+            return Json(result, JsonRequestBehavior.AllowGet);
+        }
+ public class DropDown_Prop
+    {
+        public int ID { get; set; }
+        public string Code { get; set; }
+        public string Name { get; set; }
+    }
+    
+    public class DropDown_Fun
+    {
+        //GI_MasterEntities Entities = new GI_MasterEntities();
+        string conn = ConfigurationManager.ConnectionStrings["SqlConn"].ConnectionString;
+        //Business
+        public List<DropDown_Prop> GetBusiness()
+        {
+            SqlConnection con = new SqlConnection(conn);
+            List<DropDown_Prop> list = new List<DropDown_Prop>();
+            string scmd = "select * from Mas_Business where Isactive =1";
+            SqlDataAdapter da = new SqlDataAdapter(scmd, con);
+            DataTable dt = new DataTable();
+            da.Fill(dt);
+            if (dt.Rows.Count > 0)
+            {
+                for (int i = 0; i < dt.Rows.Count; i++)
+                {
+                    DropDown_Prop prop = new DropDown_Prop();
+                    prop.Code = dt.Rows[i]["Busscode"].ToString();
+                    prop.Name = dt.Rows[i]["Bussname"].ToString();
+                    list.Add(prop);
+
+                }
+
+            }
+            return list;
+        }
